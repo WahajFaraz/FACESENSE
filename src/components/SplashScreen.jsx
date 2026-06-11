@@ -65,7 +65,7 @@ export default function SplashScreen({ onStart }) {
           className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight"
         >
           <span className="bg-gradient-to-r from-[#22c55e] via-[#4ade80] to-[#06b6d4] bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(34,197,94,0.3)]">
-            EMOTO-SCAN
+            FACESENSE
           </span>
           <span className="block text-2xl sm:text-3xl md:text-4xl mt-1 font-light tracking-[0.3em] text-slate-400">
             AI
@@ -92,9 +92,9 @@ export default function SplashScreen({ onStart }) {
         {/* Tagline */}
         <motion.p
           variants={item}
-          className="mt-6 text-xs text-slate-600 max-w-xs leading-relaxed"
+          className="mt-6 text-lg text-slate-600 max-w-xs leading-relaxed"
         >
-          Biometric emotion recognition powered by client-side neural networks. No data leaves your device.
+          Biometric emotion recognition powered by client-side neural networks.
         </motion.p>
 
         {/* Pulse button */}
@@ -120,8 +120,17 @@ export default function SplashScreen({ onStart }) {
           variants={item}
           className="mt-8 flex items-center gap-2 text-[10px] text-slate-700 tracking-widest uppercase"
         >
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse" />
-          System Standby
+          <div className="flex flex-col">
+  <span className="text-2xl font-bold mb-2">
+    Made By:
+  </span>
+
+  <ul className="list-disc pl-6 mt-2 text-lg">
+    <li>Wahaj Faraz 2025F-BCS-116</li>
+    <li>Hamza Islam 2025F-BCS-109</li>
+    <li>Syed Muhammad Faizan Azfar 2025F-BCS-329</li>
+  </ul>
+</div>
         </motion.div>
       </motion.div>
     </div>
