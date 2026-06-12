@@ -1,7 +1,0 @@
-{
-  "framework": "vite",
-  "installCommand": "npm install --ignore-engines",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
