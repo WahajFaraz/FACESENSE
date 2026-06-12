@@ -119,17 +119,13 @@ export default function EmotionEngine({ onLogSession, onNavigateVault, sessions 
       const blob = await captureFrame()
       if (blob) {
         const fileName = `session_${Date.now()}.jpg`
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('session-images')
-          .upload(fileName, blob, { contentType: 'image/jpeg' })
+          .upload(fileName, blob, { contentType: 'image/jpeg', upsert: false })
 
         if (uploadError) throw uploadError
 
-        const { data: urlData } = await supabase.storage
-          .from('session-images')
-          .getPublicUrl(fileName)
-
-        imageUrl = urlData?.publicUrl || ''
+        imageUrl = fileName
       }
 
       const { error: dbError } = await supabase.from('sessions').insert({
