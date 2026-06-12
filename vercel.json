@@ -1,7 +1,4 @@
 {
-  "installCommand": "npm install --ignore-engines --no-audit --no-fund",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
