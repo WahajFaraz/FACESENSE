@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiCamera, FiCameraOff, FiClock, FiBarChart2, FiZap } from 'react-icons/fi'
+import { FiCamera, FiCameraOff, FiClock, FiBarChart2, FiZap, FiCheckCircle } from 'react-icons/fi'
 import EmotionGauge from './EmotionGauge'
 import ScannerOverlay from './ScannerOverlay'
 import { generateMockEmotions, getDominantEmotion, getPalette } from '../utils/mockData'
+import { supabase } from '../lib/supabase'
 
 export default function EmotionEngine({ onLogSession, onNavigateVault, sessions }) {
   const [emotions, setEmotions] = useState(null)
@@ -12,6 +13,9 @@ export default function EmotionEngine({ onLogSession, onNavigateVault, sessions 
   const [cameraError, setCameraError] = useState('')
   const [fps] = useState(0)
   const [logMessage, setLogMessage] = useState('')
+  const [logSuccess, setLogSuccess] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [userName, setUserName] = useState('')
   const videoRef = useRef(null)
   const streamRef = useRef(null)
 
@@ -90,19 +94,71 @@ export default function EmotionEngine({ onLogSession, onNavigateVault, sessions 
    *  cameraActive === true.
    * ────────────────────────────────────── */
 
+  /* ── Capture video frame as blob ── */
+  const captureFrame = useCallback(async () => {
+    const video = videoRef.current
+    if (!video || !video.videoWidth) return null
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(video, 0, 0)
+    return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85))
+  }, [])
+
   /* ── Log session ── */
-  const handleLog = () => {
-    if (!emotions) return
-    const entry = {
-      id: Date.now(),
-      timestamp: new Date().toISOString(),
-      dominant: dominant.name,
-      dominantValue: dominant.value,
-      snapshot: { ...emotions },
+  const handleLog = async () => {
+    if (!emotions || saving) return
+    setSaving(true)
+    setLogMessage('')
+    setLogSuccess(false)
+
+    try {
+      let imageUrl = ''
+
+      const blob = await captureFrame()
+      if (blob) {
+        const fileName = `session_${Date.now()}.jpg`
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('session-images')
+          .upload(fileName, blob, { contentType: 'image/jpeg' })
+
+        if (uploadError) throw uploadError
+
+        const { data: urlData } = await supabase.storage
+          .from('session-images')
+          .getPublicUrl(fileName)
+
+        imageUrl = urlData?.publicUrl || ''
+      }
+
+      const { error: dbError } = await supabase.from('sessions').insert({
+        name: userName || 'Anonymous',
+        dominant_emotion: dominant.name,
+        dominant_value: dominant.value,
+        emotions_snapshot: emotions,
+        image_url: imageUrl,
+      })
+
+      if (dbError) throw dbError
+
+      const entry = {
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        dominant: dominant.name,
+        dominantValue: dominant.value,
+        snapshot: { ...emotions },
+      }
+      onLogSession(entry)
+      setLogSuccess(true)
+      setLogMessage('Session saved to database!')
+    } catch (err) {
+      setLogMessage(`Error: ${err.message}`)
+      setLogSuccess(false)
+    } finally {
+      setSaving(false)
+      setTimeout(() => setLogMessage(''), 3000)
     }
-    onLogSession(entry)
-    setLogMessage(`${dominant.name} logged`)
-    setTimeout(() => setLogMessage(''), 2000)
   }
 
   return (
@@ -260,15 +316,26 @@ export default function EmotionEngine({ onLogSession, onNavigateVault, sessions 
             </motion.div>
           )}
 
+          {/* Name input */}
+          <div>
+            <input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="Enter your name..."
+              className="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-800/60 border border-slate-700/50 text-slate-300 placeholder-slate-600 focus:outline-none focus:border-[#22c55e]/40 transition-colors"
+            />
+          </div>
+
           <div className="flex gap-2">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleLog}
-              disabled={!emotions}
+              disabled={!emotions || saving}
               className="flex-1 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider cursor-pointer bg-[#22c55e]/20 text-[#22c55e] border border-[#22c55e]/30 hover:bg-[#22c55e]/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              Log Session
+              {saving ? 'Saving...' : 'Log Session'}
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -287,8 +354,11 @@ export default function EmotionEngine({ onLogSession, onNavigateVault, sessions 
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                className="text-[11px] text-[#22c55e]/80 text-center"
+                className={`text-[11px] text-center flex items-center justify-center gap-1 ${
+                  logSuccess ? 'text-[#22c55e]/80' : 'text-red-400'
+                }`}
               >
+                {logSuccess && <FiCheckCircle size={11} />}
                 {logMessage}
               </motion.div>
             )}

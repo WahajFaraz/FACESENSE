@@ -10,7 +10,7 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } },
 }
 
-export default function SplashScreen({ onStart }) {
+export default function SplashScreen({ onStart, onAdmin }) {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#0d0e12] px-6">
       {/* Background glow orbs */}
@@ -133,6 +133,18 @@ export default function SplashScreen({ onStart }) {
 </div>
         </motion.div>
       </motion.div>
+
+      {/* Admin button */}
+      <button
+        onClick={onAdmin}
+        className="absolute bottom-4 right-4 z-20 p-2 rounded-lg text-slate-700 hover:text-slate-500 hover:bg-slate-800/50 transition-all"
+        title="Admin Panel"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+      </button>
     </div>
   )
 }

@@ -1,12 +1,14 @@
 import { useState, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { FiLock } from 'react-icons/fi'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import SplashScreen from './components/SplashScreen'
 import CalibrationScreen from './components/CalibrationScreen'
 import EmotionEngine from './components/EmotionEngine'
 import MoodVault from './components/MoodVault'
+import AdminPanel from './components/AdminPanel'
 
-const SCREENS = ['splash', 'calibration', 'engine', 'vault']
+const SCREENS = ['splash', 'calibration', 'engine', 'vault', 'admin']
 
 const pageVariants = {
   initial: { opacity: 0, scale: 0.98, filter: 'blur(4px)' },
@@ -28,6 +30,7 @@ export default function App() {
   const goToCalibration = useCallback(() => navigate('calibration'), [navigate])
   const goToEngine = useCallback(() => navigate('engine'), [navigate])
   const goToVault = useCallback(() => navigate('vault'), [navigate])
+  const goToAdmin = useCallback(() => navigate('admin'), [navigate])
 
   const handleLogSession = useCallback(
     (entry) => setSessions((prev) => [...prev, entry]),
@@ -48,7 +51,7 @@ export default function App() {
             exit="exit"
             transition={pageTransition}
           >
-            <SplashScreen onStart={goToCalibration} />
+            <SplashScreen onStart={goToCalibration} onAdmin={goToAdmin} />
           </motion.div>
         )}
 
@@ -96,6 +99,19 @@ export default function App() {
               onClear={handleClearSessions}
               onBack={goToEngine}
             />
+          </motion.div>
+        )}
+
+        {screen === 'admin' && (
+          <motion.div
+            key="admin"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={pageTransition}
+          >
+            <AdminPanel onBack={goToSplash} />
           </motion.div>
         )}
       </AnimatePresence>
